@@ -1,0 +1,10 @@
+run = "npm install && npm run build && npm run start:replit"
+modules = ["nodejs-20"]
+
+[deployment]
+build = "npm install && npm run build"
+run = "npm run start:replit"
+
+[[ports]]
+localPort = 3000
+externalPort = 80

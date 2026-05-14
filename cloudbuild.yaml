@@ -1,0 +1,56 @@
+# Cloud Build pipeline for Cloud Run repository deployment.
+# Trigger substitutions can override these values in Google Cloud Console.
+substitutions:
+  _REGION: southamerica-east1
+  _SERVICE: labirintos-revisor
+  _REPOSITORY: labirintos-containers
+  _IMAGE: labirintos-revisor
+  _SERVICE_ACCOUNT: labirintos-run-sa@sei-ufg-nuvem-ndh.iam.gserviceaccount.com
+  _INGRESS: all
+  _ALLOW_UNAUTHENTICATED: "false"
+  _VERTEX_MODEL: gemini-2.5-pro
+  _VERTEX_LOCATION: global
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+steps:
+  - id: build-image
+    name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -t
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:$COMMIT_SHA
+      - .
+
+  - id: push-image
+    name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:$COMMIT_SHA
+
+  - id: deploy-cloud-run
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        ACCESS_FLAG="--no-allow-unauthenticated"
+        if [ "${_ALLOW_UNAUTHENTICATED}" = "true" ]; then ACCESS_FLAG="--allow-unauthenticated"; fi
+        gcloud run deploy "${_SERVICE}" \
+          --image "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:$COMMIT_SHA" \
+          --region "${_REGION}" \
+          --platform managed \
+          --service-account "${_SERVICE_ACCOUNT}" \
+          --ingress "${_INGRESS}" \
+          --memory 1Gi \
+          --cpu 1 \
+          --concurrency 20 \
+          --min-instances 0 \
+          --max-instances 5 \
+          --timeout 300 \
+          --set-env-vars "APP_ENV=production,AI_PROVIDER=vertex,GOOGLE_CLOUD_PROJECT=$PROJECT_ID,GOOGLE_CLOUD_LOCATION=${_VERTEX_LOCATION},VERTEX_MODEL=${_VERTEX_MODEL},MAX_BODY_BYTES=2000000,AGENTIC_MULTI_CALLS=true,AGENTIC_MAX_STEPS=8" \
+          $ACCESS_FLAG
+
+images:
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:$COMMIT_SHA

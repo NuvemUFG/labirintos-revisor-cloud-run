@@ -1,0 +1,30 @@
+{
+  "name": "labirintos-revisor-cloud-run",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0 --port 5173",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0",
+    "linkcheck": "node scripts/check-links.mjs ./links.txt ./link-check-report.csv",
+    "proxy": "node server/llm-proxy.mjs",
+    "start": "node server/cloud-run-server.mjs",
+    "replit": "npm run build && npm run start:replit",
+    "start:replit": "node server/replit-server.mjs",
+    "gcp:local": "AI_PROVIDER=vertex GOOGLE_CLOUD_PROJECT=sei-ufg-nuvem-ndh GOOGLE_CLOUD_LOCATION=global VERTEX_MODEL=gemini-2.5-pro npm start",
+    "cloudrun": "npm run build && npm start",
+    "agentic:health": "node -e \"fetch('http://localhost:8080/health').then(r=>r.text()).then(console.log)\""
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "latest",
+    "vite": "latest",
+    "typescript": "latest",
+    "react": "latest",
+    "react-dom": "latest"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=20"
+  }
+}
