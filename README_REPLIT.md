@@ -1,44 +1,49 @@
-apiVersion: serving.knative.dev/v1
-kind: Service
-metadata:
-  name: labirintos-revisor
-  labels:
-    app: labirintos-revisor
-    project: labirintos-de-punicao
-spec:
-  template:
-    metadata:
-      annotations:
-        autoscaling.knative.dev/minScale: "0"
-        autoscaling.knative.dev/maxScale: "5"
-        run.googleapis.com/startup-cpu-boost: "true"
-    spec:
-      serviceAccountName: labirintos-run-sa@sei-ufg-nuvem-ndh.iam.gserviceaccount.com
-      containerConcurrency: 20
-      timeoutSeconds: 300
-      containers:
-        - image: southamerica-east1-docker.pkg.dev/sei-ufg-nuvem-ndh/labirintos-containers/labirintos-revisor:IMAGE_TAG
-          ports:
-            - name: http1
-              containerPort: 8080
-          resources:
-            limits:
-              cpu: "1"
-              memory: 1Gi
-          env:
-            - name: APP_ENV
-              value: production
-            - name: AI_PROVIDER
-              value: vertex
-            - name: GOOGLE_CLOUD_PROJECT
-              value: sei-ufg-nuvem-ndh
-            - name: GOOGLE_CLOUD_LOCATION
-              value: global
-            - name: VERTEX_MODEL
-              value: gemini-2.5-pro
-            - name: MAX_BODY_BYTES
-              value: "2000000"
-            - name: AGENTIC_MULTI_CALLS
-              value: "true"
-            - name: AGENTIC_MAX_STEPS
-              value: "8"
+# Execucao no Replit
+
+Este pacote esta pronto para importacao por ZIP no Replit.
+
+## 1. Importar
+
+1. Abra `replit.com/import`.
+2. Escolha `ZIP`.
+3. Envie este arquivo ZIP.
+4. Confirme a raiz do projeto `labirintos-revisor-react`.
+
+## 2. Secrets
+
+Em `Tools > Secrets`, adicione:
+
+- `OPENAI_API_KEY`: chave da conta/projeto OpenAI autorizada.
+- `OPENAI_MODEL`: opcional. Padrao: `gpt-5.2`.
+- `OPENAI_MAX_OUTPUT_TOKENS`: opcional. Padrao: `2500`.
+
+Nunca cole a chave no codigo, em `.env` versionado, no chat publico ou em arquivos exportados.
+
+## 3. Rodar
+
+O botao Run usa:
+
+```bash
+npm install && npm run build && npm start
+```
+
+O servidor abre a porta `3000` e expoe:
+
+- `/` app React
+- `/chat` chat seguro via servidor
+- `/api/check-url` teste server-side de links
+- `/health` diagnostico
+
+## 4. Publicar
+
+Use `Deployments`/`Publish` no Replit. A configuracao `.replit` ja define:
+
+```toml
+[deployment]
+build = "npm install && npm run build"
+run = "npm start"
+```
+
+## 5. Fontes sensiveis
+
+O app traz manifesto e parametros de uso das fontes. Os PDFs normativos ABNT e documentos pessoais/sensiveis nao devem ficar em pasta publica do Replit. Quando Erica inserir novos documentos, use a aba `Fontes` para registrar metadados e a aba `Trecho` para analisar trechos, sem expor CPF, documentos, contatos ou dados identificatorios.
